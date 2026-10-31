@@ -1,0 +1,410 @@
+<meta charset="utf-8">
+<title>FIRST Pro Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: a phone frame centred on a quiet studio background, with a judge's notes column on wide screens.
+   Visual language copied from the IDFC FIRST Bank app: maroon #9B1E26 brand, Inter, white cards on a cool grey ground,
+   14px radii, gold only for FIRST Pro differentiators. */
+:root{
+  --brand:#9B1E26; --brand-dark:#7A161D; --brand-tint:#FBEDEE;
+  --gold:#C9962E; --gold-tint:#FBF4E4;
+  --bg:#ECEDF1; --surface:#FFFFFF; --surface-2:#F5F5F8;
+  --ink:#1C1B1F; --ink-2:#5B5B66; --ink-3:#8E8E99; --line:#E3E3EA;
+  --good:#1E8E5A; --good-tint:#E6F5EC;
+  --font:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121216; --surface:#1C1C22; --surface-2:#24242B; --ink:#F2F2F5; --ink-2:#B5B5C0; --ink-3:#80808C; --line:#30303A;
+  --brand-tint:#2E1A1C; --gold-tint:#2A2418; --good-tint:#15281E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121216; --surface:#1C1C22; --surface-2:#24242B; --ink:#F2F2F5; --ink-2:#B5B5C0; --ink-3:#80808C; --line:#30303A;
+  --brand-tint:#2E1A1C; --gold-tint:#2A2418; --good-tint:#15281E; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.4;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+button{font-family:inherit}
+.stage{min-height:100%;display:flex;align-items:center;justify-content:center;gap:40px;padding-block:28px}
+.notes{width:330px;max-width:100%;display:none}
+@media (min-width:860px){.notes{display:block}}
+.notes h1{font-size:20px;font-weight:800;letter-spacing:-.01em;margin:0 0 4px;text-wrap:balance}
+.notes .sub{color:var(--ink-2);margin:0 0 18px;font-size:13px}
+.notes ol{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.notes li{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer;display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start}
+.notes li .n{width:22px;height:22px;border-radius:50%;background:var(--surface-2);color:var(--ink-2);font-size:11px;font-weight:700;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.notes li.on{border-color:var(--brand);background:var(--brand-tint)}
+.notes li.on .n{background:var(--brand);color:#fff}
+.notes li b{display:block;font-size:13px}
+.notes li span{font-size:12px;color:var(--ink-2)}
+.notes .legend{margin-top:16px;font-size:12px;color:var(--ink-2);display:flex;gap:8px;align-items:center}
+.tag{display:inline-flex;align-items:center;gap:4px;background:var(--gold-tint);color:#8A6212;border:1px solid #E9D7A6;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;white-space:nowrap}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tag{color:#E6C572;border-color:#5A4A22}}
+:root[data-theme="dark"] .tag{color:#E6C572;border-color:#5A4A22}
+
+/* phone */
+.phone{width:390px;max-width:100%;height:820px;max-height:calc(100vh - 56px);background:#0B0B0D;border-radius:46px;padding:12px;box-shadow:0 30px 80px rgba(0,0,0,.35),0 0 0 1px #2a2a2e inset;position:relative;flex:none}
+@media (max-width:480px){.phone{border-radius:0;padding:0;height:100vh;max-height:none;box-shadow:none;background:transparent}
+  .stage{padding-block:0}}
+.screen{width:100%;height:100%;background:var(--surface-2);border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+@media (max-width:480px){.screen{border-radius:0}}
+.status{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:13px;font-weight:600;color:#fff;background:var(--brand);flex:none}
+.status .pill{width:110px;height:28px;background:#0B0B0D;border-radius:999px;margin:0 auto;position:absolute;left:50%;transform:translateX(-50%);top:8px}
+@media (max-width:480px){.status .pill{display:none}}
+.view{flex:1;overflow:auto;display:none;flex-direction:column;scrollbar-width:none}
+.view::-webkit-scrollbar{display:none}
+.view.on{display:flex}
+.hdr{background:var(--brand);color:#fff;padding:6px 18px 18px;flex:none}
+.hdr .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hdr .back{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.14);border:0;color:#fff;display:grid;place-items:center;cursor:pointer}
+.hdr h2{font-size:17px;font-weight:700;margin:0;letter-spacing:-.01em}
+.hdr .sub{font-size:12px;opacity:.85;margin-top:2px}
+.body{padding:14px 14px 90px;display:grid;gap:12px;align-content:start}
+.card{background:var(--surface);border-radius:var(--r);padding:14px;border:1px solid var(--line)}
+.card h3{margin:0 0 4px;font-size:14px;font-weight:700}
+.muted{color:var(--ink-2);font-size:12px}
+.tiny{color:var(--ink-3);font-size:11px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;background:var(--brand);color:#fff}
+.btn.ghost{background:transparent;color:var(--brand);border:1.5px solid var(--brand)}
+.btn:active{transform:translateY(1px)}
+.sticky{position:absolute;left:0;right:0;bottom:0;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--surface-2) 70%,transparent)}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:8px 0;border-top:1px solid var(--line)}
+.kv:first-of-type{border-top:0}
+.kv b{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.money{font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+/* home */
+.greet{display:flex;align-items:center;justify-content:space-between}
+.avatar{width:38px;height:38px;border-radius:50%;background:#fff;color:var(--brand);display:grid;place-items:center;font-weight:800;font-size:14px}
+.balance{background:var(--surface);color:var(--ink);border-radius:var(--r);padding:14px;margin-top:14px;border:1px solid var(--line)}
+.balance .amt{font-size:26px;font-weight:800;margin:2px 0 6px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.qa{display:grid;justify-items:center;gap:6px;font-size:11px;color:var(--ink-2);text-align:center}
+.qa i{width:46px;height:46px;border-radius:14px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;color:var(--brand)}
+.promo{background:linear-gradient(135deg,#7A161D,#9B1E26 60%,#B8302F);color:#fff;border-radius:var(--r);padding:14px;position:relative;overflow:hidden;cursor:pointer;border:0;text-align:left;width:100%}
+.promo:after{content:"";position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:rgba(201,150,46,.25)}
+.promo .t{font-size:16px;font-weight:800;margin:6px 0 2px}
+.promo .s{font-size:12px;opacity:.9}
+.promo .cta{margin-top:10px;display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#1C1B1F;font-weight:700;font-size:12px;padding:7px 10px;border-radius:8px}
+.nav{position:absolute;left:0;right:0;bottom:0;height:64px;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav div{display:grid;justify-items:center;align-content:center;gap:3px;font-size:10px;color:var(--ink-3)}
+.nav div.on{color:var(--brand);font-weight:700}
+/* offer */
+.hero{background:var(--brand);color:#fff;padding:0 18px 22px;text-align:left}
+.hero .lbl{font-size:12px;opacity:.85}
+.hero .big{font-size:36px;font-weight:800;letter-spacing:-.03em;margin:4px 0 2px}
+.hero .meta{display:flex;gap:14px;font-size:12px;opacity:.95;flex-wrap:wrap}
+.score{display:flex;gap:12px;align-items:center}
+.ring{width:66px;height:66px;border-radius:50%;background:conic-gradient(var(--good) 0 82%,var(--line) 82% 100%);display:grid;place-items:center;flex:none}
+.ring b{width:52px;height:52px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-size:15px}
+.why{display:grid;gap:8px}
+.why div{display:flex;gap:8px;align-items:flex-start;font-size:13px}
+.why svg{flex:none;margin-top:1px}
+/* chips, slider, toggles */
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;color:var(--ink)}
+.chip.on{border-color:var(--brand);background:var(--brand-tint);color:var(--brand);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--brand)}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface-2);border-radius:12px;padding:4px;gap:4px}
+.seg button{border:0;background:transparent;border-radius:9px;padding:10px 8px;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;text-align:center}
+.seg button.on{background:var(--surface);color:var(--brand);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.emi{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.emi div{background:var(--surface-2);border-radius:10px;padding:10px}
+.emi .v{font-size:18px;font-weight:800;margin-top:2px}
+/* docs */
+.doc{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.doc:first-child{border-top:0}
+.doc .ic{width:36px;height:36px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;color:var(--brand);flex:none}
+.doc .t{flex:1;min-width:0}
+.doc .t b{display:block;font-size:13px}
+.doc .t span{font-size:11px;color:var(--ink-2)}
+.st{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--good-tint);color:var(--good);white-space:nowrap}
+.st.wait{background:var(--surface-2);color:var(--ink-3)}
+/* RM + timeline */
+.rm{display:flex;gap:12px;align-items:center}
+.rm .ph{width:48px;height:48px;border-radius:50%;background:var(--brand-tint);color:var(--brand);display:grid;place-items:center;font-weight:800}
+.tl{display:grid;gap:0}
+.tl>div{display:grid;grid-template-columns:18px 1fr;gap:10px;position:relative;padding-bottom:14px}
+.tl>div:before{content:"";position:absolute;left:8px;top:18px;bottom:0;width:2px;background:var(--line)}
+.tl>div:last-child:before{display:none}
+.tl i{width:18px;height:18px;border-radius:50%;background:var(--surface);border:2px solid var(--brand);display:block}
+.tl i.done{background:var(--good);border-color:var(--good)}
+.tl b{font-size:13px;display:block}
+.tl span{font-size:11px;color:var(--ink-2)}
+.ok{width:72px;height:72px;border-radius:50%;background:var(--good-tint);color:var(--good);display:grid;place-items:center;margin:16px auto 6px}
+.center{text-align:center}
+.toast{position:absolute;left:14px;right:14px;top:56px;background:#1C1B1F;color:#fff;border-radius:12px;padding:12px 14px;font-size:13px;display:none;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:5}
+.toast.on{display:block}
+@media (prefers-reduced-motion:no-preference){.view.on{animation:in .22s ease-out}@keyframes in{from{opacity:.4;transform:translateX(12px)}to{opacity:1;transform:none}}}
+.focus:focus-visible,button:focus-visible,.chip:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+</style>
+
+<div class="stage">
+  <aside class="notes" aria-label="Judge's notes">
+    <h1>FIRST Pro inside the IDFC FIRST app</h1>
+    <p class="sub">Clickable prototype, Team Challengers, FAME 6.0 PS5. Same shell as the bank's app; everything tagged <span class="tag">FIRST Pro</span> is new.</p>
+    <ol id="steps">
+      <li data-go="0"><span class="n">1</span><div><b>Home, as today</b><span>One new card: a pre-approved offer the customer never had to ask for. Answers the 52% who were never shown one.</span></div></li>
+      <li data-go="1"><span class="n">2</span><div><b>Pro-Score offer</b><span>Limit, rate and the reasons they qualified. Transparent scoring builds trust and removes the "am I eligible?" question.</span></div></li>
+      <li data-go="2"><span class="n">3</span><div><b>Equipment EMI or Flexi line</b><span>Live EMI at the same 11%. Flexi line is the 34% lever: interest only on what is drawn.</span></div></li>
+      <li data-go="3"><span class="n">4</span><div><b>Zero-upload documents</b><span>Account Aggregator, GST, NMC and ICAI registries fetch everything. Fixes the 22% "asked for the same documents again".</span></div></li>
+      <li data-go="4"><span class="n">5</span><div><b>Named Pro RM and 48-hour clock</b><span>A human you can call plus a countdown. 48% want a named person; 62% want money within 48 hours.</span></div></li>
+      <li data-go="5"><span class="n">6</span><div><b>Sanctioned, refer a colleague</b><span>Association offer applied and a referral that feeds the ecosystem engine. 82% act on a colleague's word.</span></div></li>
+    </ol>
+    <div class="legend">Tap any step, or use the phone. Rate stays at 11% throughout.</div>
+  </aside>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="status"><span>9:41</span><span class="pill"></span><span>5G ▮▮▮</span></div>
+      <div class="toast" id="toast"></div>
+
+      <!-- 0 HOME -->
+      <section class="view on" data-v="0">
+        <div class="hdr">
+          <div class="greet">
+            <div><div style="font-size:12px;opacity:.85">Good morning</div><div style="font-size:17px;font-weight:700">Dr. Meera Nair</div></div>
+            <div class="avatar">MN</div>
+          </div>
+          <div class="balance">
+            <div class="muted">Savings account  •  XX4821</div>
+            <div class="amt money">₹4,82,560.40</div>
+            <div class="muted">Interest credited monthly  •  <span style="color:var(--brand);font-weight:600">View statement</span></div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="grid4">
+            <div class="qa"><i>₹</i>Pay</div>
+            <div class="qa"><i>⇄</i>Transfer</div>
+            <div class="qa"><i>▣</i>Cards</div>
+            <div class="qa"><i>◔</i>Invest</div>
+          </div>
+          <button class="promo" data-go="1" id="promo">
+            <span class="tag">FIRST Pro  •  new</span>
+            <div class="t">Your ₹25,00,000 professional limit is ready</div>
+            <div class="s">Pre-approved for your dental practice. No documents. 11% p.a.</div>
+            <div class="cta">See my limit →</div>
+          </button>
+          <div class="card">
+            <h3>Loans</h3>
+            <div class="kv"><span>Home loan  •  XX9031</span><b class="money">₹38,20,114 due</b></div>
+            <div class="kv"><span>Next EMI</span><b>5 Nov  •  ₹41,250</b></div>
+          </div>
+          <div class="card">
+            <h3>Offers for you</h3>
+            <div class="muted">Metal credit card, FASTag recharge cashback, FD at 7.25%</div>
+          </div>
+        </div>
+        <div class="nav"><div class="on">●<span>Home</span></div><div>₹<span>Pay</span></div><div>▣<span>Cards</span></div><div>◔<span>Invest</span></div><div>≡<span>More</span></div></div>
+      </section>
+
+      <!-- 1 OFFER -->
+      <section class="view" data-v="1">
+        <div class="hdr"><div class="row"><button class="back" data-go="0" aria-label="Back">←</button><h2>FIRST Pro</h2><span class="tag">pre-approved</span></div></div>
+        <div class="hero">
+          <div class="lbl">Your professional loan limit</div>
+          <div class="big money">₹25,00,000</div>
+          <div class="meta"><span>11.0% p.a. fixed</span><span>•</span><span>12 to 84 months</span><span>•</span><span>Valid till 30 Nov</span></div>
+        </div>
+        <div class="body">
+          <div class="card">
+            <div class="score">
+              <div class="ring"><b>782</b></div>
+              <div><h3>Pro-Score: strong</h3><div class="muted">Why you qualified, in plain words.</div></div>
+            </div>
+            <div class="why" style="margin-top:12px">
+              <div><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="8" fill="#1E8E5A"/><path d="M4.5 8.5l2.2 2.2L11.5 6" stroke="#fff" stroke-width="1.8" fill="none"/></svg><span>Registered dentist, Kerala Dental Council, since 2019 (6 years in practice)</span></div>
+              <div><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="8" fill="#1E8E5A"/><path d="M4.5 8.5l2.2 2.2L11.5 6" stroke="#fff" stroke-width="1.8" fill="none"/></svg><span>Practice receipts of ₹3.1 L a month into this account for 24 months</span></div>
+              <div><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="8" fill="#1E8E5A"/><path d="M4.5 8.5l2.2 2.2L11.5 6" stroke="#fff" stroke-width="1.8" fill="none"/></svg><span>Bureau score 782, home loan paid on time for 31 months</span></div>
+              <div><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="8" fill="#C9962E"/><path d="M8 4v5M8 11v1" stroke="#fff" stroke-width="1.8"/></svg><span>Limit above ₹30 L needs GST or ITR. Add them later to raise the limit.</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>What this is not</h3>
+            <div class="muted">No processing fee for pre-approved customers. No branch visit. No new account needed. You can decline and nothing changes.</div>
+          </div>
+        </div>
+        <div class="sticky"><button class="btn" data-go="2">Use my limit</button></div>
+      </section>
+
+      <!-- 2 CHOOSE -->
+      <section class="view" data-v="2">
+        <div class="hdr"><div class="row"><button class="back" data-go="1" aria-label="Back">←</button><h2>Choose how you borrow</h2><span></span></div><div class="sub">Rate is 11% p.a. either way. Only the structure changes.</div></div>
+        <div class="body">
+          <div class="card">
+            <div class="seg" role="tablist">
+              <button class="on" id="modeEmi" role="tab">Equipment EMI</button>
+              <button id="modeFlexi" role="tab">Flexi line <span class="tag" style="margin-left:4px">FIRST Pro</span></button>
+            </div>
+            <div class="muted" id="modeHelp" style="margin-top:10px">Fixed EMI. Best for a one-time purchase like a dental chair or imaging unit.</div>
+          </div>
+          <div class="card">
+            <h3>What is it for?</h3>
+            <div class="chips" id="purpose">
+              <button class="chip on">Dental chair</button><button class="chip">Clinic renovation</button><button class="chip">Imaging unit</button><button class="chip">Working capital</button><button class="chip">Second clinic</button>
+            </div>
+          </div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:baseline"><h3>Amount</h3><b class="money" id="amtLbl" style="font-size:18px">₹18,00,000</b></div>
+            <input type="range" id="amt" min="500000" max="2500000" step="50000" value="1800000" aria-label="Loan amount">
+            <div class="tiny" style="display:flex;justify-content:space-between"><span>₹5 L</span><span>Your limit ₹25 L</span></div>
+          </div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:baseline"><h3>Tenure</h3><span class="muted" id="tenLbl">60 months</span></div>
+            <div class="chips" id="tenure">
+              <button class="chip" data-m="24">24</button><button class="chip" data-m="36">36</button><button class="chip" data-m="48">48</button><button class="chip on" data-m="60">60</button><button class="chip" data-m="84">84</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="emi">
+              <div><div class="muted" id="emiHead">Monthly EMI</div><div class="v money" id="emi">₹39,138</div></div>
+              <div><div class="muted" id="intHead">Total interest</div><div class="v money" id="tint">₹5,48,280</div></div>
+            </div>
+            <div class="tiny" id="flexiNote" style="margin-top:8px;display:none">Flexi: draw in parts, pay interest only on the drawn balance, repay any time. Shown for a full draw.</div>
+          </div>
+        </div>
+        <div class="sticky"><button class="btn" data-go="3">Continue</button></div>
+      </section>
+
+      <!-- 3 DOCS -->
+      <section class="view" data-v="3">
+        <div class="hdr"><div class="row"><button class="back" data-go="2" aria-label="Back">←</button><h2>Documents</h2><span class="tag">zero upload</span></div><div class="sub">We fetch, you confirm. Nothing to scan or email.</div></div>
+        <div class="body">
+          <div class="card" id="docs">
+            <div class="doc"><div class="ic">ID</div><div class="t"><b>Identity and address</b><span>Already KYC-verified with IDFC FIRST</span></div><span class="st">Done</span></div>
+            <div class="doc"><div class="ic">DC</div><div class="t"><b>Dental Council registration</b><span>Kerala Dental Council  •  reg. A-21xxx</span></div><span class="st wait" data-t="1200">Fetching</span></div>
+            <div class="doc"><div class="ic">AA</div><div class="t"><b>Bank statements, 12 months</b><span>Via Account Aggregator, with your consent</span></div><span class="st wait" data-t="2100">Fetching</span></div>
+            <div class="doc"><div class="ic">GST</div><div class="t"><b>GST returns</b><span>Optional. Raises limit above ₹30 L</span></div><span class="st wait" data-t="3000">Fetching</span></div>
+            <div class="doc"><div class="ic">₹</div><div class="t"><b>Dealer quotation</b><span>Dentsply Sirona, ₹18,00,000  •  shared by dealer</span></div><span class="st">Done</span></div>
+          </div>
+          <div class="card">
+            <h3>Consent</h3>
+            <div class="muted">One-time Account Aggregator consent for 12 months of statements from XX4821. Revoke any time from Settings.</div>
+            <button class="btn ghost" id="consent" style="margin-top:10px">Approve consent</button>
+          </div>
+        </div>
+        <div class="sticky"><button class="btn" id="toRm" data-go="4" disabled style="opacity:.5">Confirm documents</button></div>
+      </section>
+
+      <!-- 4 RM + 48h -->
+      <section class="view" data-v="4">
+        <div class="hdr"><div class="row"><button class="back" data-go="3" aria-label="Back">←</button><h2>Your Pro RM</h2><span class="tag">named person</span></div><div class="sub">One person owns your file until the money lands.</div></div>
+        <div class="body">
+          <div class="card">
+            <div class="rm">
+              <div class="ph">AK</div>
+              <div><h3>Ankit Kumar</h3><div class="muted">Pro Desk, Kochi MG Road branch  •  Speaks English, Malayalam, Hindi</div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+              <button class="btn ghost" style="padding:10px;font-size:13px" id="callBtn">Call</button>
+              <button class="btn ghost" style="padding:10px;font-size:13px" id="waBtn">WhatsApp</button>
+            </div>
+          </div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:baseline"><h3>48-hour promise</h3><b id="clock" class="money" style="color:var(--brand)">47:59:58</b></div>
+            <div class="tl" style="margin-top:10px">
+              <div><i class="done"></i><div><b>Offer accepted</b><span>Today, 9:41 am</span></div></div>
+              <div><i class="done"></i><div><b>Documents verified</b><span>Today, 9:43 am</span></div></div>
+              <div><i></i><div><b>Credit sign-off</b><span>By today, 6 pm</span></div></div>
+              <div><i></i><div><b>Money in XX4821</b><span>By Thu, 10:00 am, or we pay ₹1,000 a day</span></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="kv"><span>Loan</span><b class="money" id="sumAmt">₹18,00,000  •  Equipment EMI</b></div>
+            <div class="kv"><span>Rate</span><b>11.0% p.a.</b></div>
+            <div class="kv"><span>Tenure</span><b id="sumTen">60 months</b></div>
+            <div class="kv"><span>Processing fee</span><b>₹0 (pre-approved)</b></div>
+            <div class="kv"><span>Disbursal</span><b>Direct to Dentsply Sirona</b></div>
+          </div>
+        </div>
+        <div class="sticky"><button class="btn" data-go="5">Accept and e-sign</button></div>
+      </section>
+
+      <!-- 5 DONE -->
+      <section class="view" data-v="5">
+        <div class="hdr"><div class="row"><span style="width:32px"></span><h2>Sanctioned</h2><span style="width:32px"></span></div></div>
+        <div class="body">
+          <div class="center">
+            <div class="ok"><svg width="36" height="36" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg></div>
+            <div style="font-size:20px;font-weight:800;letter-spacing:-.02em" class="money" id="doneAmt">₹18,00,000 sanctioned</div>
+            <div class="muted">Money reaches Dentsply Sirona by Thu, 10:00 am. Ankit will message you at each step.</div>
+          </div>
+          <div class="card" style="border-color:#E9D7A6;background:var(--gold-tint)">
+            <span class="tag">association offer applied</span>
+            <h3 style="margin-top:8px">Indian Dental Association, Kerala</h3>
+            <div class="muted">As an IDA member your processing fee is waived for life and your Pro-Score limit is reviewed every quarter.</div>
+          </div>
+          <div class="card">
+            <h3>Know a colleague setting up?</h3>
+            <div class="muted">Share FIRST Pro. They get a pre-approved check in 2 minutes; you both get ₹2,000 in your account when they draw.</div>
+            <button class="btn" style="margin-top:10px" id="refer">Share with a colleague</button>
+          </div>
+          <div class="card">
+            <h3>Track this loan</h3>
+            <div class="muted">Pinned to your Loans tab with the 48-hour clock, your RM and every document in one place.</div>
+          </div>
+          <button class="btn ghost" data-go="0">Back to home</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var views=[].slice.call(document.querySelectorAll('.view'));
+  var steps=[].slice.call(document.querySelectorAll('#steps li'));
+  var cur=0, clockTimer=null, docTimers=[];
+  function fmt(n){ n=Math.round(n); var s=String(n), last3=s.slice(-3), rest=s.slice(0,-3); if(rest) last3=','+last3; return '₹'+rest.replace(/\B(?=(\d{2})+(?!\d))/g,',')+last3; }
+  function go(i){
+    cur=i; views.forEach(function(v,k){v.classList.toggle('on',k===i); if(k===i) v.scrollTop=0;});
+    steps.forEach(function(s,k){s.classList.toggle('on',k===i)});
+    if(i===3) runDocs(); if(i===4) runClock(); if(i===5) toast('e-signed with Aadhaar OTP. Sanction letter sent to your email.');
+  }
+  document.addEventListener('click',function(e){
+    var t=e.target.closest('[data-go]'); if(t && !t.disabled){ go(+t.getAttribute('data-go')); }
+  });
+  // toast
+  var toastEl=document.getElementById('toast'), toastT;
+  function toast(m){ toastEl.textContent=m; toastEl.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){toastEl.classList.remove('on')},2600); }
+  // mode
+  var flexi=false, amt=1800000, months=60, RATE=0.11;
+  var emiEl=document.getElementById('emi'), tintEl=document.getElementById('tint'), amtLbl=document.getElementById('amtLbl'), tenLbl=document.getElementById('tenLbl');
+  function calc(){
+    var r=RATE/12, emi=amt*r*Math.pow(1+r,months)/(Math.pow(1+r,months)-1);
+    if(!flexi){ emiEl.textContent=fmt(emi); tintEl.textContent=fmt(emi*months-amt); document.getElementById('emiHead').textContent='Monthly EMI'; document.getElementById('intHead').textContent='Total interest'; }
+    else { emiEl.textContent=fmt(amt*r); tintEl.textContent=fmt(amt*r*12); document.getElementById('emiHead').textContent='Interest a month, full draw'; document.getElementById('intHead').textContent='Interest a year, full draw'; }
+    document.getElementById('flexiNote').style.display=flexi?'block':'none';
+    amtLbl.textContent=fmt(amt); tenLbl.textContent=months+' months';
+    document.getElementById('sumAmt').textContent=fmt(amt)+'  •  '+(flexi?'Flexi line':'Equipment EMI');
+    document.getElementById('sumTen').textContent=flexi?'Revolving, review yearly':months+' months';
+    document.getElementById('doneAmt').textContent=fmt(amt)+' sanctioned';
+  }
+  document.getElementById('modeEmi').onclick=function(){flexi=false;this.classList.add('on');document.getElementById('modeFlexi').classList.remove('on');document.getElementById('modeHelp').textContent='Fixed EMI. Best for a one-time purchase like a dental chair or imaging unit.';calc();};
+  document.getElementById('modeFlexi').onclick=function(){flexi=true;this.classList.add('on');document.getElementById('modeEmi').classList.remove('on');document.getElementById('modeHelp').textContent='A limit you draw from when you need it. Interest only on the drawn balance. Best for renovation phases, tax season and payroll gaps.';calc();};
+  document.getElementById('amt').oninput=function(){amt=+this.value;calc();};
+  document.getElementById('tenure').addEventListener('click',function(e){var c=e.target.closest('.chip'); if(!c) return; [].forEach.call(this.children,function(x){x.classList.remove('on')}); c.classList.add('on'); months=+c.getAttribute('data-m'); calc();});
+  document.getElementById('purpose').addEventListener('click',function(e){var c=e.target.closest('.chip'); if(!c) return; [].forEach.call(this.children,function(x){x.classList.remove('on')}); c.classList.add('on');});
+  calc();
+  // docs
+  var consented=false;
+  function runDocs(){
+    docTimers.forEach(clearTimeout); docTimers=[];
+    var waits=[].slice.call(document.querySelectorAll('#docs .st.wait'));
+    waits.forEach(function(s){ s.textContent='Fetching'; s.classList.add('wait'); });
+    waits.forEach(function(s){ docTimers.push(setTimeout(function(){ s.textContent='Verified'; s.classList.remove('wait'); check(); }, +s.getAttribute('data-t'))); });
+    check();
+  }
+  function check(){ var left=document.querySelectorAll('#docs .st.wait').length; var b=document.getElementById('toRm'); var ok=left===0&&consented; b.disabled=!ok; b.style.opacity=ok?'1':'.5'; b.textContent= ok?'Confirm documents':(consented?'Fetching documents…':'Approve consent to continue'); }
+  document.getElementById('consent').onclick=function(){consented=true;this.textContent='Consent approved';this.disabled=true;this.style.opacity='.6';toast('Account Aggregator consent recorded. Valid 12 months.');check();};
+  // clock
+  function runClock(){ clearInterval(clockTimer); var end=Date.now()+48*3600*1000-2000; var el=document.getElementById('clock');
+    function tick(){ var d=Math.max(0,end-Date.now()); var h=Math.floor(d/3600000), m=Math.floor(d%3600000/60000), s=Math.floor(d%60000/1000); el.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+    tick(); clockTimer=setInterval(tick,1000); }
+  document.getElementById('callBtn').onclick=function(){toast('Calling Ankit Kumar, Pro Desk… (prototype)');};
+  document.getElementById('waBtn').onclick=function(){toast('Opening WhatsApp chat with Ankit… (prototype)');};
+  document.getElementById('refer').onclick=function(){toast('Referral link copied. Share it with a colleague.');};
+  var h=location.hash.replace('#',''); if(/^s[0-5]$/.test(h)) go(+h[1]);
+})();
+</script>
